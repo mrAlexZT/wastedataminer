@@ -33,7 +33,6 @@ def make_keyboard(columns):
                     reply_keyboard.append(tmp_keyboard)
                     tmp_keyboard = []
                     i = 0
-    reply_keyboard.append(['я не знаю что это'])
     reply_keyboard.append(['cancel'])
     return reply_keyboard
 
