@@ -9,10 +9,19 @@ import csv
 from config import TOKEN
 import uuid
 import os
+import requests
+import json
+import http.client as http_client
+
+http_client.HTTPConnection.debuglevel = 1
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
+logging.getLogger().setLevel(logging.DEBUG)
+requests_log = logging.getLogger("requests.packages.urllib3")
+requests_log.setLevel(logging.DEBUG)
+requests_log.propagate = True
 
 logger = logging.getLogger(__name__)
 
@@ -45,10 +54,34 @@ def start(bot, update):
                    reply_markup=reply_markup)
     return PHOTO
 
+_URL_API_ = "http://127.0.0.1:5000/api/UploadFile4Learning"
+
 def custom_choice(bot, update, user_data):
     text = update.message.text
     user_data['choice'] = text
-    os.rename(user_data['filename'], user_data['filename'].replace("--","-"+user_data['choice']+"-"))
+    file_name = user_data['filename'].replace("--", "-" + user_data['choice'] + "-")
+    os.rename(user_data['filename'], file_name)
+
+    try:
+        # попытка вызвать сервис и передать картинку для обучения.
+        headers = {'Content-type': 'multipart/form-data'}
+        data = {'user_id': update.message.from_user.id,
+                'source': 'bot',
+                'filename': file_name.split('/')[1],
+                'descr': user_data['choice']}
+        files = {'file': (file_name.split('/')[1], open(file_name,'rb'), 'image/jpeg', {'Expires': '0'})}
+        print (headers)
+        print (files)
+        print (data)
+        req = requests.post(url=_URL_API_, files=files, headers=headers,data=data)
+        print(req.content)
+        print (req)
+        print (req.text)
+        pass
+    except Exception as e:
+        print (e)
+        pass
+
     reply_markup = ReplyKeyboardRemove()
     bot.sendMessage(chat_id=update.message.chat.id,
                     text="Превосходно! Спасибо за предоставленное изображение!",
