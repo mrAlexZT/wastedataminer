@@ -12,6 +12,7 @@ import os
 import requests
 import json
 import http.client as http_client
+from transliterate import translit
 
 http_client.HTTPConnection.debuglevel = 1
 
@@ -54,34 +55,40 @@ def start(bot, update):
                    reply_markup=reply_markup)
     return PHOTO
 
-_URL_API_ = "http://127.0.0.1:5000/api/UploadFile4Learning"
+_URL_API_ = "http://127.0.0.1:5001/api/UploadFile4Learning"
+_FILE_4_LEARN_ = "files"
 
 def custom_choice(bot, update, user_data):
     text = update.message.text
     user_data['choice'] = text
-    file_name = user_data['filename'].replace("--", "-" + user_data['choice'] + "-")
+    file_name = user_data['filename'].replace("--", "-" + translit(user_data['choice'], reversed=True) + "-")
+    print (file_name)
+    print (user_data['filename'])
     os.rename(user_data['filename'], file_name)
 
+    # попытка вызвать сервис и передать картинку для обучения.
+    print ("start sending")
+    logger.info("start sending")
     try:
-        # попытка вызвать сервис и передать картинку для обучения.
-        headers = {'Content-type': 'multipart/form-data'}
+        print (file_name)
+        files = {'file': (open(file_name,'rb'), 'image/jpeg', {'Expires': '0'})}
+        print("001")
         data = {'user_id': update.message.from_user.id,
                 'source': 'bot',
                 'filename': file_name.split('/')[1],
                 'descr': user_data['choice']}
-        files = {'file': (file_name.split('/')[1], open(file_name,'rb'), 'image/jpeg', {'Expires': '0'})}
-        print (headers)
-        print (files)
-        print (data)
-        req = requests.post(url=_URL_API_, files=files, headers=headers,data=data)
-        print(req.content)
-        print (req)
-        print (req.text)
-        pass
-    except Exception as e:
-        print (e)
-        pass
-
+        print("002")
+        print("files:", files, "data:", data)
+        req = requests.post(url=_URL_API_, files=files, data=data)
+        
+        print("003")
+        print("Request:", req, req.text, req.content)
+        
+    except Exception as ex:
+        print (ex)
+        print("004")
+    print('-'*10)
+    print("005")
     reply_markup = ReplyKeyboardRemove()
     bot.sendMessage(chat_id=update.message.chat.id,
                     text="Превосходно! Спасибо за предоставленное изображение!",
@@ -99,7 +106,11 @@ def photo(bot, update, user_data):
     text = user_data['choice']=""
     user = update.message.from_user
     f = bot.getFile(update.message.photo[-1].file_id)
-    fn = "files/{}-{}-{}-{}.jpg".format(user.id,text,time.time(),'001')
+
+    if not os.path.exists(_FILE_4_LEARN_):
+        os.makedirs(_FILE_4_LEARN_)
+    
+    fn = _FILE_4_LEARN_+"/{}-{}-{}-{}.jpg".format(user.id,text,time.time(),'001')
     f.download(fn)
     user_data['filename']=fn
     update.message.reply_text(
