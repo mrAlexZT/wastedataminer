@@ -1,2 +1,27 @@
-python-telegram-bot
-transliterate 
+Flask==0.12
+Flask-RESTful==0.3.5
+Jinja2==2.9.5
+MarkupSafe==1.0
+Werkzeug==0.12
+aniso8601==1.2.0
+appdirs==1.4.3
+certifi==2017.1.23
+click==6.7
+future==0.16.0
+itsdangerous==0.24
+numpy==1.12.0
+packaging==16.8
+protobuf==3.2.0
+pyparsing==2.2.0
+python-dateutil==2.6.0
+python-telegram-bot==5.3.0
+pytz==2016.10
+requests==2.5.1
+
+six==1.10.0
+# we need some tensorflow. Is it really 1.0.0 though?
+# https://www.tensorflow.org/versions/r0.10/get_started/os_setup#virtualenv_installation
+#tensorflow-gpu==1.0.0
+
+urllib3==1.20
+wheel==0.29.0
